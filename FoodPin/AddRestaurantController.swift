@@ -18,7 +18,12 @@ class AddRestaurantController: UITableViewController, UIImagePickerControllerDel
     @IBOutlet var yesButton:UIButton!
     @IBOutlet var noButton:UIButton!
     
+    @IBOutlet var phoneTextField: UITextField!
+    
+    
     var isVisited = true
+    //--
+    var restaurant:RestaurantMO!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -85,7 +90,33 @@ class AddRestaurantController: UITableViewController, UIImagePickerControllerDel
             
             return
         }
+        //---
+        print  ("Name \(nameTextField.text ?? "") ")
+        print  ("Type \(typeTextField.text ?? "") ")
+        print  ("Location \(locationTextField.text ?? "") ")
+        print  ("Phone \(phoneTextField.text ?? "") ")
+        print  ("Have you bean here \(nameTextField.text ?? "") ")
         
+        if let appDelegate = (UIApplication.shared.delegate as? AppDelegate){
+            restaurant=RestaurantMO(context: appDelegate.persistentContainer.viewContext)
+            restaurant.name=nameTextField.text
+            restaurant.type=typeTextField.text
+            restaurant.location=locationTextField.text
+            restaurant.isVisited=isVisited
+            
+            if let restaurantImage=photoImageView.image
+            {
+                if let imageData = UIImagePNGRepresentation(restaurantImage) {
+                    restaurant.image=NSData(data: imageData)
+                }
+            
+            }
+            print("Saving data context")
+            appDelegate.saveContext()
+            
+        }
+        
+    
         dismiss(animated: true, completion: nil)
     }
     
