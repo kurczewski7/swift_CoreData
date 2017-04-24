@@ -18,7 +18,7 @@ class RestaurantTableViewController: UITableViewController,NSFetchedResultsContr
     var restaurants2:[Restaurant] = [
         Restaurant(name: "Cafe Deadend", type: "Coffee & Tea Shop", location: "G/F, 72 Po Hing Fong, Sheung Wan, Hong Kong", phone: "232-923423", image: "cafedeadend.jpg", isVisited: false),
         Restaurant(name: "Homei", type: "Cafe", location: "Shop B, G/F, 22-24A Tai Ping San Street SOHO, Sheung Wan, Hong Kong", phone: "348-233423", image: "homei.jpg", isVisited: false),
-        Restaurant(name: "Teakha", type: "Tea House", location: "Shop B, 18 Tai Ping Shan Road SOHO, Sheung Wan, Hong Kong", phone: "354-243523", image: "teakha.jpg", isVisited: false),
+        Restaurant(name: "Teakha", type: "Tea House", location: "Shop B, 18 Tai Ping Shan Road SOHO, Sheung Wan, Hong Kong", phone: "354-243523", image: "teakha.jpg", isVisited:  false),
         Restaurant(name: "Cafe loisl", type: "Austrian / Causual Drink", location: "Shop B, 20 Tai Ping Shan Road SOHO, Sheung Wan, Hong Kong", phone: "453-333423", image: "cafeloisl.jpg", isVisited: false),
         Restaurant(name: "Petite Oyster", type: "French", location: "24 Tai Ping Shan Road SOHO, Sheung Wan, Hong Kong", phone: "983-284334", image: "petiteoyster.jpg", isVisited: false),
         Restaurant(name: "For Kee Restaurant", type: "Bakery", location: "Shop J-K., 200 Hollywood Road, SOHO, Sheung Wan, Hong Kong", phone: "232-434222", image: "forkeerestaurant.jpg", isVisited: false),
@@ -51,6 +51,28 @@ class RestaurantTableViewController: UITableViewController,NSFetchedResultsContr
         // Enable Self Sizing Cells
         tableView.estimatedRowHeight = 80.0
         tableView.rowHeight = UITableViewAutomaticDimension
+        //-----
+        // Feach data from store
+        let fetchRequest: NSFetchRequest<RestaurantMO>=RestaurantMO.fetchRequest()
+        let sortDescriptor=NSSortDescriptor(key: "name", ascending: true)
+        fetchRequest.sortDescriptors=[sortDescriptor]
+        if let appDelegate = (UIApplication.shared.delegate as? AppDelegate)
+        {
+            let context=appDelegate.persistentContainer.viewContext
+            fetchResultController=NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+            fetchResultController.delegate=self
+            
+            do{
+                try fetchResultController.performFetch()
+                if let fechedObjects = fetchResultController.fetchedObjects
+                {
+                    restaurants=fechedObjects
+                }
+            } catch
+                {
+                     print(error)
+                }
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -120,12 +142,20 @@ class RestaurantTableViewController: UITableViewController,NSFetchedResultsContr
         })
         
         // Delete button
-        let deleteAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "Delete",handler: { (action, indexPath) -> Void in
+        let deleteAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "Kasuj",handler: { (action, indexPath) -> Void in
+            
+            if let appDelegate = (UIApplication.shared.delegate as? AppDelegate){
+                let context=appDelegate.persistentContainer.viewContext
+                let restaurantToDelete=self.fetchResultController.object(at: indexPath)
+                context.delete(restaurantToDelete)
+                appDelegate.saveContext()
+            
+            }
             
             // Delete the row from the data source
-            self.restaurants.remove(at: indexPath.row)
+            //        self.restaurants.remove(at: indexPath.row)
             
-            self.tableView.deleteRows(at: [indexPath], with: .fade)
+            //        self.tableView.deleteRows(at: [indexPath], with: .fade)
         })
         
         shareAction.backgroundColor = UIColor(red: 48.0/255.0, green: 173.0/255.0, blue: 99.0/255.0, alpha: 1.0)
@@ -153,5 +183,36 @@ class RestaurantTableViewController: UITableViewController,NSFetchedResultsContr
     @IBAction func unwindToHomeScreen(segue:UIStoryboardSegue) {
         
     }
+    // MARK: implementacja protokołu NSFetchedResultsControllerDelegate
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        tableView.beginUpdates()
+    }
+    
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        
+        switch type {
+        case .insert:
+            if let newIndexPath = newIndexPath {
+            tableView.insertRows(at: [newIndexPath], with: .fade)
+            }
+        case .delete:
+                if let indexPath = indexPath {
+                    tableView.deleteRows(at: [indexPath], with: .fade)
+            }
+        case .update:
+                if let indexPath = indexPath {
+                    tableView.reloadRows(at: [indexPath], with: .fade)
+            }
+        default:
+            tableView.reloadData()
+        }
+        if let fechedObjects = controller.fetchedObjects {
+        
+        restaurants=fechedObjects as! [RestaurantMO]}
+    }
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        tableView.endUpdates()
+    }
+    
     
 }

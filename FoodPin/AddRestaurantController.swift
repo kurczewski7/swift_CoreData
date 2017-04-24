@@ -94,7 +94,7 @@ class AddRestaurantController: UITableViewController, UIImagePickerControllerDel
         print  ("Name \(nameTextField.text ?? "") ")
         print  ("Type \(typeTextField.text ?? "") ")
         print  ("Location \(locationTextField.text ?? "") ")
-        print  ("Phone \(phoneTextField.text ?? "") ")
+       // print  ("Phone \(phoneTextField.text ?? "") ")   blad
         print  ("Have you bean here \(nameTextField.text ?? "") ")
         
         if let appDelegate = (UIApplication.shared.delegate as? AppDelegate){
